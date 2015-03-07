@@ -1,7 +1,8 @@
 BITS 32
   
-     ; B0 40 corresponds to mov al, 4. Org is chosen to include this
-     ; default value here would be 0x08048000, but anything in bottom half 
+     ; B0 40 corresponds to mov al, 4. Org is chosen to embed this instruction
+     ; in the programm memory address
+     ; the default value here would be 0x08048000, but anything in bottom half 
      ; is valid (0x0~0x80000000) top half is heap, stack, etc.         
                 org     0x04b00000 
   
