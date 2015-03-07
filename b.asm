@@ -10,21 +10,21 @@ BITS 32
                 db      0x7F, "ELF", 1, 1, 1, 0         ;   e_ident         	**	8  	8
 
      ; 8 bytes of padding in header ident. Reserved for future use.
-     ; Ignored by linux. We can store code here
+     ; Currently ignored by linux. We can store code here
      ;   times 8 db	0
-		db	0		   ;					**	1	9
-_start:		mov	ecx, msg	   ;					**    	5	14
-		jmp short cont1		   ;					**	2	16
+		db	0		;					**	1	9
+_start:		mov	ecx, msg	;					**    	5	14
+		jmp short cont1		;					**	2	16
      	        
-                dw      2                  ;   e_type				**	2	18
-                dw      3                  ;   e_machine			**	2	20
-                dd      1                  ;   e_version			**	4	24
-                dd      _start             ;   e_entry				**	4	28
-                dd      phdr - $$          ;   e_phoff				**	4	32
-	        dd      0                  ;   e_shoff				**	4	36
-                dd      0                  ;   e_flags				**	4	40
-                dw      ehdrsize           ;   e_ehsize				**	2	42
-                dw      phdrsize           ;   e_phentsize			**	2	44
+                dw      2		;   e_type				**	2	18
+                dw      3		;   e_machine				**	2	20
+                dd      1		;   e_version				**	4	24
+                dd      _start		;   e_entry				**	4	28
+                dd      phdr - $$	;   e_phoff				**	4	32
+	        dd      0		;   e_shoff				**	4	36
+                dd      0		;   e_flags				**	4	40
+                dw      ehdrsize	;   e_ehsize				**	2	42
+                dw      phdrsize	;   e_phentsize				**	2	44
 
   ;  end of elf header and start of program header are identical
   ;  note: this is only the case for little endian encoding
@@ -46,26 +46,25 @@ _start:		mov	ecx, msg	   ;					**    	5	14
   ; physical address paddr is ignored and its contents are unspecified
   ; these 4 bytes can be used to execute 2 bytes of instructions and 
   ; 1 four byte jmp
-		xor     ebx,ebx    ;   (paddr)					**	2	58
-		jmp short cont2	   ;   (paddr)					**	2	60
+        	mov	dl,len		;   (paddr)				**	2	58	
+		jmp short cont2	   	;   (paddr)				**	2	60
 
-		dd	filesize	   ;   p_filesz				**	4	64
-                dd      filesize           ;   p_memsz				**	4	68
+		dd	filesize	;   p_filesz				**	4	64
+                dd      filesize	;   p_memsz				**	4	68
   ; since we are writing to memory in an xor below (xor [ecx],al)
   ; the program memory needs to be writable. Normally the code 
   ; would be read+executable and data memory read+writable
   ; This would require two program table entries
   ; r__ = 4 (100), r_x = 5 (101), rwx = 7 (111)  
-                dd      7                  ;   p_flags (rwx)			**	4	72
-                dd      0x1000             ;   p_align				**	4	76
+                dd      7		;   p_flags (rwx)			**	4	72
+                dd      0x1000		;   p_align				**	4	76
   
   phdrsize      equ     $ - phdr
 
  cont2:
- 
-        	mov	dl,len		;					**	2	78	
-  		inc     ebx     	; 1st parameter, stdout = 1		**	1	79
-                        	; eax = 4, edx = 2 done in elf header above 
+		xor     ebx,ebx		; 					**	2	78
+  		inc     ebx		; 1st parameter, stdout = 1		**	1	79
+                        		; eax = 4, edx = 2 done in elf header above 
 
    ; the value to be printed is "encrypted" with our secret key, 
    ; which happens to be the value of al
